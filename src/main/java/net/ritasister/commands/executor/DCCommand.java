@@ -16,7 +16,7 @@ import com.google.common.collect.Lists;
 
 public abstract class DCCommand implements CommandExecutor, TabExecutor 
 {
-    private Player $p;
+    private Player p;
     
     private final transient String name;
     
@@ -25,22 +25,22 @@ public abstract class DCCommand implements CommandExecutor, TabExecutor
         this.name = name;
     }
 
-	public boolean onCommand(CommandSender $s, Command $cmd, String label, String[] $args)
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
     {
         try{
-			run($s,$cmd,label,$args);
+			run(sender,cmd,label,args);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
         return true;
     }
 	
-	public List<String> onTabComplete(CommandSender $s, Command $cmd, String label, String[] $args) 
+	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) 
 	{
-		return onTabComplete($s, $p, $cmd, label, $args);
+		return onTabComplete(sender, p, cmd, label, args);
 	}
 
-	public abstract void run(CommandSender $s, Command $cmd, String label, String[] $args) throws Exception;
+	public abstract void run(CommandSender s, Command cmd, String label, String[] args) throws Exception;
 	
-	public abstract List<String> onTabComplete(CommandSender $s, Player $p, Command $cmd, String $label, String[] $args);
+	public abstract List<String> onTabComplete(CommandSender s, Player p, Command cmd, String label, String[] args);
 }
