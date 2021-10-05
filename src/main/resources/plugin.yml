@@ -1,0 +1,11 @@
+name: AquaLimeDonateCase
+main: net.ritasister.dc.Main
+description: AquaLimeDonateCase
+author: RitaSister
+version: 1.6
+depend: [Vault]
+api-version: 1.17
+commands:
+  donatcase:
+    usage: /donatcase
+    aliases: [dc]
