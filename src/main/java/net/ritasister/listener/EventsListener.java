@@ -6,7 +6,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import net.ritasister.dc.Case;
-import net.ritasister.dc.Main;
+import net.ritasister.dc.DonateCase;
 import net.ritasister.gui.GuiDonatCase;
 import net.ritasister.tools.StartAnimation;
 
@@ -28,34 +28,40 @@ import org.bukkit.event.Listener;
 public class EventsListener implements Listener
 {
     @EventHandler
-    public void onEntityDamageByEntity(final EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Firework && event.getEntity() instanceof Player && event.getDamager().hasMetadata("case")) {
+    public void onEntityDamageByEntity(final EntityDamageByEntityEvent event) 
+    {
+        if (event.getDamager() instanceof Firework && event.getEntity() instanceof Player && event.getDamager().hasMetadata("case"))
+        {
             event.setCancelled(true);
         }
     }
     
     @EventHandler
-    public void InventoryClick(final InventoryClickEvent e) {
-        if (e.getCurrentItem() != null) {
+    public void InventoryClick(final InventoryClickEvent e)
+    {
+        if (e.getCurrentItem() != null) 
+        {
             final Player p = (Player)e.getWhoClicked();
             final String pl = p.getName();
             final String title = e.getView().getTitle();
-            if (Case.hasCaseByTitle(title)) {
+            if (Case.hasCaseByTitle(title)) 
+            {
                 e.setCancelled(true);
-                if (e.getAction() != InventoryAction.MOVE_TO_OTHER_INVENTORY && e.getInventory().getType() == InventoryType.CHEST && e.getRawSlot() == Main.t.c(5, 3)) {
+                if (e.getAction() != InventoryAction.MOVE_TO_OTHER_INVENTORY && e.getInventory().getType() == InventoryType.CHEST && e.getRawSlot() == DonateCase.t.c(5, 3)) {
                     final Case c = Case.getCaseByTitle(title);
-                    if (c.getKeys(pl) >= 1) {
-                        if (Main.openCase.containsKey(p)) {
-                            final Location block = Main.openCase.get(p);
+                    if (c.getKeys(pl) >= 1) 
+                    {
+                        if (DonateCase.openCase.containsKey(p)) 
+                        {
+                            final Location block = DonateCase.openCase.get(p);
                             c.removeKeys(pl, 1);
                             new StartAnimation(p, block, c);
                         }
                         p.closeInventory();
-                    }
-                    else {
+                    }else{
                         p.closeInventory();
                         p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.4f);
-                        Main.t.msg((CommandSender)p, Main.lang.getString("NoKey"));
+                        DonateCase.t.msg((CommandSender)p, DonateCase.lang.getString("NoKey"));
                     }
                 }
             }
@@ -63,27 +69,33 @@ public class EventsListener implements Listener
     }
     
     @EventHandler
-    public void PlayerInteractEntity(final PlayerInteractAtEntityEvent e) {
+    public void PlayerInteractEntity(final PlayerInteractAtEntityEvent e) 
+    {
         final Entity entity = e.getRightClicked();
-        if (entity.getType() == EntityType.ARMOR_STAND && Main.listAR.contains(entity)) {
+        if (entity.getType() == EntityType.ARMOR_STAND && DonateCase.listAR.contains(entity)) 
+        {
             e.setCancelled(true);
         }
     }
     
     @EventHandler
-    public void PlayerInteract(final PlayerInteractEvent e) {
-        if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+    public void PlayerInteract(final PlayerInteractEvent e) 
+    {
+        if (e.getAction() == Action.RIGHT_CLICK_BLOCK) 
+        {
             final Player p = e.getPlayer();
             final Location loc = e.getClickedBlock().getLocation();
-            if (Case.hasCaseByLocation(loc)) {
+            if (Case.hasCaseByLocation(loc)) 
+            {
                 e.setCancelled(true);
-                if (!StartAnimation.caseOpen.contains(p)) {
-                    if (!Main.ActiveCase.containsKey(loc)) {
-                        Main.openCase.put(p, loc.clone());
+                if (!StartAnimation.caseOpen.contains(p)) 
+                {
+                    if (!DonateCase.ActiveCase.containsKey(loc)) 
+                    {
+                        DonateCase.openCase.put(p, loc.clone());
                         new GuiDonatCase(p, Case.getCaseByLocation(loc));
-                    }
-                    else {
-                        Main.t.msg((CommandSender)p, Main.lang.getString("HaveOpenCase"));
+                    }else{
+                        DonateCase.t.msg((CommandSender)p, DonateCase.lang.getString("HaveOpenCase"));
                     }
                 }
             }
@@ -91,19 +103,23 @@ public class EventsListener implements Listener
     }
     
     @EventHandler
-    public void InventoryClose(final InventoryCloseEvent e) {
+    public void InventoryClose(final InventoryCloseEvent e) 
+    {
         final Player p = (Player)e.getPlayer();
-        if (Case.hasCaseByTitle(e.getView().getTitle()) && Main.openCase.containsKey(p)) {
-            Main.openCase.remove(p);
+        if (Case.hasCaseByTitle(e.getView().getTitle()) && DonateCase.openCase.containsKey(p)) 
+        {
+            DonateCase.openCase.remove(p);
         }
     }
     
     @EventHandler
-    public void BlockBreak(final BlockBreakEvent e) {
+    public void BlockBreak(final BlockBreakEvent e) 
+    {
         final Location loc = e.getBlock().getLocation();
-        if (Case.hasCaseByLocation(loc)) {
+        if (Case.hasCaseByLocation(loc)) 
+        {
             e.setCancelled(true);
-            //Main.t.msg((CommandSender)e.getPlayer(), Main.lang.getString("DestoryDonatCase"));
+            //DonateCase.t.msg((CommandSender)e.getPlayer(), DonateCase.lang.getString("DestoryDonatCase"));
         }
     }
 }

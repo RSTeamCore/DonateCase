@@ -23,7 +23,7 @@ public class MySQL
         }
         catch (SQLException var5) {
             var5.printStackTrace();
-            Bukkit.getPluginManager().disablePlugin((Plugin)Main.plugin);
+            Bukkit.getPluginManager().disablePlugin((Plugin)DonateCase.instance);
         }
     }
     
@@ -54,10 +54,10 @@ public class MySQL
         try {
             player = player.toLowerCase();
             if (!this.hasField("donate_cases", "player='" + player + "' AND case_name='" + name + "'")) {
-                this.stmt.executeUpdate(Main.t.rt("INSERT INTO `donate_cases` (`player`, `case_name`, `keys_count`) VALUES ('%player', '%case', '%keys')", "%player:" + player, "%keys:" + keys, "%case:" + name));
+                this.stmt.executeUpdate(DonateCase.t.rt("INSERT INTO `donate_cases` (`player`, `case_name`, `keys_count`) VALUES ('%player', '%case', '%keys')", "%player:" + player, "%keys:" + keys, "%case:" + name));
             }
             else {
-                this.stmt.executeUpdate(Main.t.rt("UPDATE `donate_cases` SET keys_count='%keys' WHERE player='%player' AND case_name='%case'", "%player:" + player, "%keys:" + keys, "%case:" + name));
+                this.stmt.executeUpdate(DonateCase.t.rt("UPDATE `donate_cases` SET keys_count='%keys' WHERE player='%player' AND case_name='%case'", "%player:" + player, "%keys:" + keys, "%case:" + name));
             }
         }
         catch (SQLException var5) {

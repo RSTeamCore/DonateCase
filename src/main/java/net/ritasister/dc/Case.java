@@ -42,7 +42,7 @@ public class Case
     }
     
     public String getTitle() {
-        return Main.t.rc(this.title);
+        return DonateCase.t.rc(this.title);
     }
     
     public String getName() {
@@ -66,10 +66,10 @@ public class Case
     public void saveLocation() {
         final ArrayList<String> lv = new ArrayList<String>();
         for (final Location l : this.getLocation()) {
-            lv.add(Main.t.getLoc(l));
+            lv.add(DonateCase.t.getLoc(l));
         }
-        Main.CCase.getConfig().set("DonatCase.Cases." + this.getName() + ".Case", (Object)lv);
-        Main.CCase.save();
+        DonateCase.CCase.getConfig().set("DonatCase.Cases." + this.getName() + ".Case", (Object)lv);
+        DonateCase.CCase.save();
     }
     
     public List<ItemCase> getItems() {
@@ -78,12 +78,12 @@ public class Case
     
     public void setKeys(String player, final int keys) {
         player = player.toLowerCase();
-        if (Main.Tconfig) {
-            Main.Ckeys.getConfig().set("DonatCase.Cases." + this.getName() + "." + player, (Object)((keys == 0) ? null : Integer.valueOf(keys)));
-            Main.Ckeys.save();
+        if (DonateCase.Tconfig) {
+            DonateCase.Ckeys.getConfig().set("DonatCase.Cases." + this.getName() + "." + player, (Object)((keys == 0) ? null : Integer.valueOf(keys)));
+            DonateCase.Ckeys.save();
         }
         else {
-            Main.mysql.setKey(this.getName(), player, keys);
+            DonateCase.mysql.setKey(this.getName(), player, keys);
         }
     }
     
@@ -98,13 +98,13 @@ public class Case
     
     public int getKeys(String player) {
         player = player.toLowerCase();
-        return Main.Tconfig ? Main.Ckeys.getConfig().getInt("DonatCase.Cases." + this.getName() + "." + player) : Main.mysql.getKey(this.getName(), player);
+        return DonateCase.Tconfig ? DonateCase.Ckeys.getConfig().getInt("DonatCase.Cases." + this.getName() + "." + player) : DonateCase.mysql.getKey(this.getName(), player);
     }
     
     public static boolean hasCaseByLocation(final Location loc) {
         for (final Case c : Case.classes) {
             for (final Location ca : c.getLocation()) {
-                if (Main.t.isHere(ca, loc)) {
+                if (DonateCase.t.isHere(ca, loc)) {
                     return true;
                 }
             }
@@ -115,7 +115,7 @@ public class Case
     public static Case getCaseByLocation(final Location loc) {
         for (final Case c : Case.classes) {
             for (final Location ca : c.getLocation()) {
-                if (Main.t.isHere(ca, loc)) {
+                if (DonateCase.t.isHere(ca, loc)) {
                     return c;
                 }
             }
@@ -178,7 +178,7 @@ public class Case
             if (material == null) {
                 material = Material.STONE;
             }
-            this.item = Main.t.createItem(material, 1, data, displayaname);
+            this.item = DonateCase.t.createItem(material, 1, data, displayaname);
         }
         
         public String getDisplayName() {
