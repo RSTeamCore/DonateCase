@@ -2,9 +2,9 @@ name: AquaLimeDonateCase
 main: net.ritasister.dc.Main
 description: AquaLimeDonateCase
 author: RitaSister
-version: 1.6
+version: 1.5
 depend: [Vault]
-api-version: 1.17
+api-version: 1.13
 commands:
   donatcase:
     usage: /donatcase
