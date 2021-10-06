@@ -1,8 +1,7 @@
-name: AquaLimeDonateCase
-main: net.ritasister.dc.Main
-description: AquaLimeDonateCase
+name: DonateCase
+main: net.ritasister.dc.DonateCase
 author: RitaSister
-version: 1.5
+version: 0.1.6
 depend: [Vault]
 api-version: 1.13
 commands:
