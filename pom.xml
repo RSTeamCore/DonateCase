@@ -4,7 +4,7 @@
 
   <groupId>net.ritasister</groupId>
   <artifactId>DonateCase</artifactId>
-  <version>1.5</version>
+  <version>0.1.6</version>
   <packaging>jar</packaging>
 
   <name>AquaLimeDonateCase</name>
