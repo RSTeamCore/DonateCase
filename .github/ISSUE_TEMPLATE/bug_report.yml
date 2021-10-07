@@ -75,8 +75,8 @@ body:
   - type: input
     attributes:
       label: DonateCase version
-      description: What version of SRP are you running? (`/version DonateCase`)
-      placeholder: "For example: ServerRegionProtect version 0.6.1"
+      description: What version of DonateCase are you running? (`/version DonateCase`)
+      placeholder: "For example: DonateCase version 0.6.1"
     validations:
       required: true
       
