@@ -85,7 +85,7 @@ body:
       label: Checklist
       description: Make sure you have followed each of the steps outlined here.
       options:
-        - label: I am using the newest build from https://github.com/RitaSister/DonateCase and the issue still persists.
+        - label: I am using the newest build from https://github.com/RitaSister/DonateCase/releases/ and the issue still persists.
           required: true
 
   - type: textarea
