@@ -1,7 +1,7 @@
 name: DonateCase
 main: net.ritasister.dc.DonateCase
 author: RitaSister
-version: 0.2.1
+version: ${internalVersion}
 depend: [Vault]
 api-version: 1.13
 commands:
