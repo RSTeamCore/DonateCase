@@ -1,31 +1,28 @@
 package net.ritasister.dc;
 
+import net.milkbowl.vault.permission.Permission;
 import net.ritasister.dc.commands.MainCommand;
 import net.ritasister.dc.listener.EventsListener;
 import net.ritasister.dc.tools.CustomConfig;
 import net.ritasister.dc.tools.Languages;
 import net.ritasister.dc.tools.Tools;
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
-
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.bukkit.scheduler.BukkitRunnable;
-
-import java.io.File;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.Bukkit;
-
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.ArmorStand;
-import net.milkbowl.vault.permission.Permission;
-
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DonateCase extends JavaPlugin {
 
@@ -42,13 +39,36 @@ public class DonateCase extends JavaPlugin {
 	public static FileConfiguration config;
 	public static CustomConfig Ckeys;
 	public static CustomConfig CCase;
-	public static MySQL mysql;
+	//public static Storage mysql;
 	public static String[] title = new String[2];
 	private final PluginManager pluginManager = getServer().getPluginManager();
 	private final String pluginVersion = getDescription().getVersion();
 
+	//DataBase
+	public StorageDataSource dbLogsSource;
+	public ConcurrentHashMap<String, StorageDataBase> dbLogs = new ConcurrentHashMap<>();
+
 	public DonateCase() {
 		DonateCase.instance = this;
+	}
+
+	/**
+	 * @param nickName get player name from storage.
+	 *
+	 * @return getDataStorage.
+	 */
+	@NotNull
+	public StorageDataBase getDataStorage(String nickName) {
+		return this.dbLogs.get(nickName);
+	}
+
+	/**
+	 *
+	 * @return getDataSource.
+	 */
+	@NotNull
+	public StorageDataSource getDataSource() {
+		return this.dbLogsSource;
 	}
 
 	public void onEnable() {
@@ -58,7 +78,7 @@ public class DonateCase extends JavaPlugin {
 		DonateCase.t = new Tools();
 		this.saveDefaultConfig();
 		DonateCase.config = this.getConfig();
-		Bukkit.getPluginManager().registerEvents(new EventsListener(), (Plugin)this);
+		Bukkit.getPluginManager().registerEvents(new EventsListener(), this);
 		if (!new File(this.getDataFolder(), "lang/ru_RU.yml").exists()) {
 			this.saveResource("lang/ru_RU.yml", false);
 		}
@@ -70,23 +90,10 @@ public class DonateCase extends JavaPlugin {
 		DonateCase.title[1] = DonateCase.config.getString("DonatCase.Title.SubTitle");
 		DonateCase.LevelGroup = DonateCase.config.getBoolean("DonatCase.LevelGroup");
 		this.setupPermissions();
-		if (!DonateCase.Tconfig) {
-			final String host = DonateCase.config.getString("DonatCase.MySql.Host");
-			final String user = DonateCase.config.getString("DonatCase.MySql.User");
-			final String password = DonateCase.config.getString("DonatCase.MySql.Password");
-			new BukkitRunnable() {
-				public void run() {
-					DonateCase.mysql = new MySQL(host, user, password);
-					if (!DonateCase.mysql.hasTable("donate_cases")) {
-						DonateCase.mysql.createTable();
-					}
-				}
-			}.runTaskTimer(this, 0L, 12000L);
-		}
+		this.loadDataBase();
 		final ConfigurationSection cslg;
 		if ((cslg = DonateCase.config.getConfigurationSection("DonatCase.LevelsGroup")) != null) {
-			for (final Map.Entry<?, ?> s : cslg.getValues(false).entrySet())
-			{
+			for (final Map.Entry<?, ?> s : cslg.getValues(false).entrySet()) {
 				DonateCase.levelGroup.put(((String)s.getKey()).toLowerCase(), (Integer)s.getValue());
 			}
 		}
@@ -94,7 +101,7 @@ public class DonateCase extends JavaPlugin {
 		if ((cases_ = DonateCase.config.getConfigurationSection("DonatCase.Cases")) != null) {
 			for (final String cn : cases_.getValues(false).keySet()) {
 				final String title = DonateCase.config.getString("DonatCase.Cases." + cn + ".Title");
-				final Case c = new Case(cn, title);
+				final Case c = new Case(this, cn, title);
 				for (final String i : DonateCase.config.getConfigurationSection("DonatCase.Cases." + cn + ".Items").getValues(false).keySet())
 				{
 					final int chance = DonateCase.config.getInt("DonatCase.Cases." + cn + ".Items." + i + ".Chance");
@@ -141,14 +148,31 @@ public class DonateCase extends JavaPlugin {
 		Objects.requireNonNull(this.getCommand("donatcase")).setExecutor(new MainCommand("donatcase"));
 	}
 
+	public void loadDataBase() {
+		final long duration_time_start = System.currentTimeMillis();
+		this.dbLogsSource = new Storage(this);
+		this.dbLogs.clear();
+		if (dbLogsSource.load()) {
+			this.getLogger().info("[DataBase] The player base is loaded.");
+			this.postEnable();
+			this.getLogger().info("[DataBase] Startup duration: {TIME} мс.".replace("{TIME}", String.valueOf(System.currentTimeMillis() - duration_time_start)));
+		}
+	}
+
+	public void postEnable() {
+		this.getServer().getScheduler().cancelTasks(this);
+		this.dbLogsSource.loadAsync();
+		this.getLogger().info("[DataBase] The base is loaded asynchronously.");
+	}
+
 	public void onDisable() {
 		for (final ArmorStand as : DonateCase.listAR) {
 			if (as != null) {
 				as.remove();
 			}
 		}
-		if (DonateCase.mysql != null) {
-			DonateCase.mysql.close();
+		if (dbLogsSource != null) {
+			dbLogsSource.close();
 		}
 	}
 	private void checkVersion() {
@@ -161,12 +185,12 @@ public class DonateCase extends JavaPlugin {
 			javaVersionNum = Integer.parseInt(version);
 		}catch(final NumberFormatException e){
 			Logger.getLogger(Level.WARNING + "Failed to determine Java version; Could not parse {}".replace("{}", version) + e);
-			Logger.getLogger(Level.WARNING + String.valueOf(javaVersion));
+			Logger.getLogger(Level.WARNING + javaVersion);
 			return;
 		}
 		String serverVersion;
 		try{
-			serverVersion = this.instance.getServer().getClass().getPackage().getName().split("\\.")[3];
+			serverVersion = DonateCase.instance.getServer().getClass().getPackage().getName().split("\\.")[3];
 		}catch(ArrayIndexOutOfBoundsException whatVersionAreYouUsingException){
 			return;
 		}
@@ -178,7 +202,7 @@ public class DonateCase extends JavaPlugin {
 			if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
 				Logger.getLogger(Level.INFO + "&6==============================================");
 				Logger.getLogger(Level.INFO + "Current version: &b<pl_ver>".replace("<pl_ver>", pluginVersion));
-				Logger.getLogger(Level.INFO + "This is latest version plugin.".replace("<pl_ver>", pluginVersion));
+				Logger.getLogger(Level.INFO + "This is latest version plugin.");
 				Logger.getLogger(Level.INFO + "&6==============================================");
 			}else{
 				Logger.getLogger(Level.INFO + "&6==============================================");
@@ -186,7 +210,7 @@ public class DonateCase extends JavaPlugin {
 				Logger.getLogger(Level.INFO + "&cCurrent version: &4<pl_ver>".replace("<pl_ver>", pluginVersion));
 				Logger.getLogger(Level.INFO + "&3New version: &b<new_pl_ver>".replace("<new_pl_ver>", version));
 				Logger.getLogger(Level.INFO + "&ePlease download new version here:");
-				Logger.getLogger(Level.INFO + "&ehttps://www.spigotmc.org/resources/donatecase-1-13-1-18.102109/");
+				Logger.getLogger(Level.INFO + "&ehttps://www.spigotmc.org/resources/this-1-13-1-18.102109/");
 				Logger.getLogger(Level.INFO + "&6==============================================");
 			}
 		});
