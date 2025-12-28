@@ -1,3 +1,19 @@
-rootProject.name = "DonateCase"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-include("donatecase-bukkit")
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    plugins {
+        kotlin("jvm") version "2.1.20"
+        id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+    }
+}
+
+rootProject.name = "DonateCase"
+include(
+    "donatecase-api",
+    "donatecase-common",
+    "donatecase-paper"
+)
