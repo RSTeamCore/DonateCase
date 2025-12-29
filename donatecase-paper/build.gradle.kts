@@ -35,6 +35,7 @@ dependencies {
     compileOnly("com.sk89q.worldedit:worldedit-core:7.3.9")
     compileOnly("me.clip:placeholderapi:2.11.6")
     implementation("org.bstats:bstats-bukkit:3.1.0")
+    compileOnly("net.luckperms:api:5.4")
 
     //Others implementation
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")
@@ -47,8 +48,20 @@ dependencies {
     implementation("com.google.guava:guava:33.3.1-jre")
     implementation("it.unimi.dsi:fastutil:8.5.15")
 
+    //Lombok
+    implementation("org.projectlombok:lombok:1.18.36")
+    annotationProcessor("org.projectlombok:lombok:1.18.36")
+
     //HikariCP
     implementation("com.zaxxer:HikariCP:5.0.1")
+
+    //ORMLite
+    implementation("com.j256.ormlite:ormlite-core:6.1")
+    implementation("com.j256.ormlite:ormlite-jdbc:6.1")
+
+    //Other dependencies
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+    implementation("org.jetbrains:annotations:24.1.0")
 
     //MariaDB for DataBase
     implementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")

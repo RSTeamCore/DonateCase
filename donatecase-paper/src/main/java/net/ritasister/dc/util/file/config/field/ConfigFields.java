@@ -27,18 +27,19 @@ public enum ConfigFields {
 
     UPDATE_CHECKER("updateChecker", true, "wgRegionProtect.updateChecker.sendNoUpdate"),
 
-    DATA_SOURCE_ENABLE("enable", false, "wgRegionProtect.dataSource.enable"),
-    DATA_SOURCE_HOST("host", "localhost", "wgRegionProtect.dataSource.host"),
-    DATA_SOURCE_PORT("port", 3306, "wgRegionProtect.dataSource.port"),
-    DATA_SOURCE_DATABASE("database", "database", "wgRegionProtect.dataSource.database"),
-    DATA_SOURCE_USER("root", "root", "wgRegionProtect.dataSource.root"),
-    DATA_SOURCE_PASSWORD("password", "password", "wgRegionProtect.dataSource.password"),
-    DATA_SOURCE_TABLE("wgrp_logs", "wgrp_logs", "wgRegionProtect.dataSource.wgrp_logs"),
-    DATA_SOURCE_MAX_POOL_SIZE("maxPoolSize", 10, "wgRegionProtect.dataSource.maxPoolSize"),
-    DATA_SOURCE_MAX_LIFE_TIME("maxLifetime", 1800, "wgRegionProtect.dataSource.maxLifetime"),
-    DATA_SOURCE_CONNECTION_TIMEOUT("connectionTimeout", 5000, "wgRegionProtect.dataSource.connectionTimeout"),
-    DATA_SOURCE_USE_SSL("useSsl", true, "wgRegionProtect.dataSource.useSsl"),
-    DATA_SOURCE_INTERVAL_RELOAD("intervalReload", 60, "wgRegionProtect.dataSource.intervalReload");
+    DATA_SOURCE_ENABLE("enable", false, "donateCase.dataSource.enable"),
+    DATA_SOURCE_URL("url", "url", "donateCase.dataSource.url"),
+    DATA_SOURCE_DRIVER("driver", "driver", "donateCase.dataSource.driver"),
+    DATA_SOURCE_PORT("port", 3306, "donateCase.dataSource.port"),
+    DATA_SOURCE_USER("root", "root", "donateCase.dataSource.root"),
+    DATA_SOURCE_PASSWORD("password", "password", "donateCase.dataSource.password"),
+
+    // Pool settings
+    DATA_SOURCE_USE_SSL("useSsl", true, "donateCase.dataSource.useSsl"),
+    DATA_SOURCE_MAX_POOL_SIZE("maxPoolSize", 10, "donateCase.dataSource.maxPoolSize"),
+    DATA_SOURCE_MAX_LIFE_TIME("maxLifetime", 1800, "donateCase.dataSource.maxLifetime"),
+    DATA_SOURCE_CONNECTION_TIMEOUT("connectionTimeout", 5000, "donateCase.dataSource.connectionTimeout"),
+    DATA_SOURCE_INTERVAL_RELOAD("intervalReload", 60, "donateCase.dataSource.intervalReload");
 
     private final String field;
     private final Object defaultValue;

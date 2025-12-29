@@ -4,17 +4,38 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.minecraft.server.permissions.PermissionCheck;
 import net.ritasister.dc.api.DonateCase;
+import net.ritasister.dc.api.cases.service.CaseBroadcastService;
+import net.ritasister.dc.api.cases.service.CaseRewardService;
+import net.ritasister.dc.api.cases.service.CaseStateService;
 import net.ritasister.dc.api.config.provider.ConfigProvider;
 import net.ritasister.dc.api.config.provider.MessageProvider;
 import net.ritasister.dc.api.config.version.ConfigVersionReader;
 import net.ritasister.dc.api.config.version.VersionChecker;
+import net.ritasister.dc.api.handler.Handler;
 import net.ritasister.dc.api.metadata.DonateCaseMetadata;
 import net.ritasister.dc.api.platform.Platform;
+import net.ritasister.dc.cases.group.GroupServiceImpl;
+import net.ritasister.dc.cases.item.ArmorStandFactory;
+import net.ritasister.dc.cases.item.ItemRandomService;
+import net.ritasister.dc.cases.item.ItemUtilsImpl;
+import net.ritasister.dc.cases.manager.AnimationManager;
+import net.ritasister.dc.cases.manager.CaseKeyManager;
+import net.ritasister.dc.cases.manager.CaseManager;
+import net.ritasister.dc.cases.manager.LocationManager;
+import net.ritasister.dc.cases.obj.Case;
+import net.ritasister.dc.cases.obj.CaseRepository;
+import net.ritasister.dc.cases.service.CaseBroadcastServiceImpl;
+import net.ritasister.dc.cases.service.CaseRewardServiceImpl;
+import net.ritasister.dc.cases.service.CaseStateServiceImpl;
 import net.ritasister.dc.config.ConfigType;
+import net.ritasister.dc.handler.CommandHandler;
+import net.ritasister.dc.handler.ListenerHandler;
+import net.ritasister.dc.handler.TaskHandler;
 import net.ritasister.dc.plugin.AbstractDonateCasePlugin;
 import net.ritasister.dc.plugin.checker.DCCompatibilityCheck;
+import net.ritasister.dc.plugin.loader.DCLoaderHandlers;
+import net.ritasister.dc.plugin.loader.LoadLuckPerms;
 import net.ritasister.dc.plugin.loader.PluginDisabler;
 import net.ritasister.dc.util.file.UpdateFile;
 import net.ritasister.dc.util.file.config.files.Config;
@@ -26,14 +47,18 @@ import net.ritasister.dc.util.file.config.version.ConfigCheckVersion;
 import net.ritasister.dc.util.file.config.version.MessageCheckVersion;
 import net.ritasister.dc.util.file.config.version.VersionUpdateService;
 import net.ritasister.dc.util.schedulers.FoliaRunnable;
+import net.ritasister.dc.util.tools.Tools;
 import net.ritasister.dc.util.utility.platform.PlatformDetector;
 import net.ritasister.dc.util.utility.updater.UpdateDownloaderGitHub;
 import net.ritasister.dc.util.utility.updater.UpdateNotify;
 import net.ritasister.dc.util.utility.version.MinecraftVersionChecker;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.ServicePriority;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +70,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static net.ritasister.dc.util.utility.UtilityClass.isClassPresent;
 
@@ -56,8 +80,9 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
     private PlatformDetector platformDetector;
 
     private BukkitAudiences adventure;
-    private DonateCaseMetadata wgrpMetadata;
-    private List<UUID> spyLog;
+    private DonateCaseMetadata donateCaseMetadata;
+
+    private LoadLuckPerms luckPerms;
 
     private Map<Class<? extends Listener>, Listener> listenerHandlerMap = new HashMap<>();
     private Map<String, CommandExecutor> commandMap;
@@ -72,6 +97,22 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
     private ConfigProvider<DonateCasePaperPlugin, Config> configProvider;
     private MessageProvider<DonateCasePaperPlugin, Messages> messageProvider;
 
+    private CaseRepository caseRepository;
+    private CaseManager caseManager;
+    private GroupServiceImpl groupService;
+    private Tools tools;
+    private ItemUtilsImpl itemUtils;
+
+    private Case cases;
+    private CaseStateService<Player, Location, Case> caseStateService;
+    private CaseRewardService<Player, Case> rewardService;
+    private CaseBroadcastService<Player, Case> broadcastService;
+    private ArmorStandFactory armorStandFactory;
+    private ItemRandomService randomService;
+    private AnimationManager animationManager;
+    private LocationManager locationManager;
+    private CaseKeyManager keyManager;
+
     public DonateCasePaperPlugin(DonateCasePaperBase donateCasePaperBase) {
         this.bootstrap = new DCBootstrap(donateCasePaperBase,this);
     }
@@ -80,6 +121,7 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
         this.load();
         this.adventure = BukkitAudiences.create(this.bootstrap.getLoader());
         this.initializeFields();
+        this.startAnimationServices();
 
         if (compatibleChecking()) {
             return;
@@ -88,6 +130,14 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
         this.initializeMetrics();
         this.loadAnotherClassAndMethods();
         this.logStartupTime();
+    }
+
+    private void startAnimationServices() {
+        caseStateService = new CaseStateServiceImpl();
+        rewardService = new CaseRewardServiceImpl();
+        broadcastService = new CaseBroadcastServiceImpl();
+        armorStandFactory = new ArmorStandFactory();
+        randomService = new ItemRandomService();
     }
 
     private boolean compatibleChecking() {
@@ -100,9 +150,20 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
     }
 
     private void initializeFields() {
+        Case myCase = new Case("gold_case", "§6Золотой кейс", locationManager, keyManager);
+        myCase.setCommands(List.of("say {player} выиграл {item}!"));
+        myCase.addLocation(new Location(Bukkit.getWorld("world"), 100, 65, 100));
+
+        this.keyManager = myCase.getCaseKeyManager();
+        this.locationManager = myCase.getLocationManager();
+        this.animationManager = new AnimationManager();
+        this.tools = new Tools();
+        this.itemUtils = new ItemUtilsImpl(tools);
+        this.caseRepository = new CaseRepository(this, new ArrayList<>());
+        this.caseManager = new CaseManager();
+        this.groupService = new GroupServiceImpl(this);
 
         this.versionCheck = new MinecraftVersionChecker(this.bootstrap);
-        this.spyLog = new ArrayList<>();
 
         configProvider = new net.ritasister.dc.util.file.config.provider.ConfigProvider();
         messageProvider = new MessagesProvider();
@@ -116,6 +177,8 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
 
         this.downloader = new UpdateDownloaderGitHub(this);
         this.updateNotify = new UpdateNotify(this);
+
+        this.tools = new Tools();
     }
 
     private @NonNull ConfigLoader configLoader() {
@@ -137,7 +200,7 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
     }
 
     private void initializeMetrics() {
-        final int pluginId = 12975;
+        final int pluginId = 12963;
         new Metrics(this.bootstrap.getLoader(), pluginId);
     }
 
@@ -162,10 +225,8 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
     }
 
     private void loadAnotherClassAndMethods() {
-        final LoadPlaceholderAPI loadPlaceholderAPI = new LoadPlaceholderAPI(this);
-        loadPlaceholderAPI.loadPlugin();
-
-        final List<FoliaRunnable> tasks = List.of();
+        luckPerms = new LoadLuckPerms(this);
+        luckPerms.hookLuckPerms();
 
         final ListenerHandler listenerHandler = new ListenerHandler(this);
         listenerHandler.handle(bootstrap.getLoader().getServer().getPluginManager());
@@ -173,28 +234,10 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
         final List<Handler<?>> handlers = List.of(
                 new CommandHandler(this),
                 listenerHandler,
-                new TaskHandler(this, tasks)
+                new TaskHandler(this)
         );
 
-        new WGRPLoaderHandlers(handlers).loadHandler(this);
-
-        this.regionAdapter = new RegionAdapterManagerPaper();
-        this.toolsAdapter = new ToolsAdapterManagerPaper();
-
-        playerUtilWE = new UtilWEImpl(this);
-        checkIntersection = playerUtilWE.setUpWorldGuardVersionSeven();
-    }
-
-    public List<UUID> getSpyLog() {
-        return spyLog;
-    }
-
-    public RSApiImpl getRsApi() {
-        return rsApi;
-    }
-
-    public CheckIntersection getCheckIntersection() {
-        return checkIntersection;
+        new DCLoaderHandlers(handlers).loadHandler(this);
     }
 
     public void messageToCommandSender(final @NotNull CommandSender commandSender, final String message) {
@@ -230,14 +273,13 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
         return downloader;
     }
 
-    @Override
-    public PermissionCheck getPermissionCheck() {
-        return playerPermissions;
+    public LoadLuckPerms getLuckPerms() {
+        return luckPerms;
     }
 
     @Override
     public DonateCaseMetadata getMetaData() {
-        return wgrpMetadata;
+        return donateCaseMetadata;
     }
 
     public Map<Class<? extends Listener>, Listener> getListenerHandlerMap() {
@@ -274,5 +316,57 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
 
     public MessageProvider<DonateCasePaperPlugin, Messages> getMessageProvider() {
         return messageProvider;
+    }
+
+    public GroupServiceImpl getGroupService() {
+        return groupService;
+    }
+
+    public CaseManager getCaseManager() {
+        return caseManager;
+    }
+
+    public CaseRepository getCaseRepository() {
+        return caseRepository;
+    }
+
+    public Tools getTools() {
+        return tools;
+    }
+
+    public ItemUtilsImpl getItemUtils() {
+        return itemUtils;
+    }
+
+    public AnimationManager getAnimationManager() {
+        return animationManager;
+    }
+
+    public CaseStateService<Player, Location, Case> getCaseStateService() {
+        return caseStateService;
+    }
+
+    public CaseRewardService<Player, Case> getCaseRewardService() {
+        return rewardService;
+    }
+
+    public CaseBroadcastService<Player, Case> getCaseBroadcastService() {
+        return broadcastService;
+    }
+
+    public ArmorStandFactory getArmorStandFactory() {
+        return armorStandFactory;
+    }
+
+    public ItemRandomService getItemRandomService() {
+        return randomService;
+    }
+
+    public LocationManager getLocationManager() {
+        return locationManager;
+    }
+
+    public CaseKeyManager getKeyManager() {
+        return keyManager;
     }
 }
