@@ -158,7 +158,7 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
         this.locationManager = myCase.getLocationManager();
         this.animationManager = new AnimationManager();
         this.tools = new Tools();
-        this.itemUtils = new ItemUtilsImpl(tools);
+        this.itemUtils = new ItemUtilsImpl();
         this.caseRepository = new CaseRepository(this, new ArrayList<>());
         this.caseManager = new CaseManager();
         this.groupService = new GroupServiceImpl(this);
@@ -177,8 +177,6 @@ public class DonateCasePaperPlugin extends AbstractDonateCasePlugin {
 
         this.downloader = new UpdateDownloaderGitHub(this);
         this.updateNotify = new UpdateNotify(this);
-
-        this.tools = new Tools();
     }
 
     private @NonNull ConfigLoader configLoader() {

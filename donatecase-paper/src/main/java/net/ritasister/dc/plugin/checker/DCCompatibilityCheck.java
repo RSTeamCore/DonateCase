@@ -20,12 +20,12 @@ public class DCCompatibilityCheck {
     }
 
     public boolean performCompatibilityChecks() {
-        if (!versionChecker.check(pluginDisabler.plugin)) {
+        if (!versionChecker.check(pluginDisabler.getPlugin())) {
             pluginDisabler.disableWithMessage("Incompatible Minecraft version");
             return false;
         }
 
-        final String platform = platformDetector.detectPlatform(pluginDisabler.plugin.getBootstrap(), pluginDisabler.plugin.getType());
+        final String platform = platformDetector.detectPlatform(pluginDisabler.getPlugin().getBootstrap(), pluginDisabler.getPlugin().getType());
 
         if (Platform.Type.UNKNOWN.getPlatformName().equals(platform)) {
             pluginDisabler.disableWithMessage("Unsupported server platform: " + platform);

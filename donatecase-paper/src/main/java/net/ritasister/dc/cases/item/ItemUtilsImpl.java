@@ -12,12 +12,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class ItemUtilsImpl implements ItemUtils<ItemCase, Material, ItemStack> {
 
-    private final Tools tools;
-
-    public ItemUtilsImpl(Tools tools) {
-        this.tools = tools;
-    }
-
     public ItemStack createItem(final Material material) {
         return this.createItem(material, 0, 1, null, null);
     }

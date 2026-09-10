@@ -5,7 +5,7 @@ import org.bukkit.Bukkit;
 
 public class PluginDisabler {
 
-    final DonateCasePaperPlugin plugin;
+    private final DonateCasePaperPlugin plugin;
 
     public PluginDisabler(DonateCasePaperPlugin plugin) {
         this.plugin = plugin;
@@ -18,5 +18,9 @@ public class PluginDisabler {
         } else {
             plugin.getLogger().warn(String.format("Attempted to disable plugin '%s', but it was already disabled.", plugin.getBootstrap().getLoader().getName()));
         }
+    }
+
+    public DonateCasePaperPlugin getPlugin() {
+        return plugin;
     }
 }
