@@ -1,0 +1,88 @@
+# -------------------------------------------------------------
+# Basic configuration settings for the plugin.
+# -------------------------------------------------------------
+donateCase:
+
+  # -------------------------------------------------------------
+  # Do not touch!
+  # -------------------------------------------------------------
+  version: 1
+
+  # -------------------------------------------------------------
+  # Language of this plugins.
+  # Loaded languages uploaded in "lang" folder.
+  # Languages available:
+  # ru_RU, en_US
+  # -------------------------------------------------------------
+  lang: ru_RU
+
+  levelGroup: true
+
+  levelsGroup:
+    creator: 10
+    depcreator: 10
+    support: 10
+    moder: 10
+    builder: 10
+    youtube: 6
+    immortal: 5
+    legend: 4
+    deluxe: 3
+    vipplus: 2
+    vip: 1
+    default: 0
+
+    Title:
+      Title: '%group'
+      SubTitle: ''
+
+  Cases:
+    aq_case:
+      Title: '&c&lДонат-&a&lКейс'
+      Commands:
+        - lp user %player group set %group
+      Items:
+        VIP:
+          Group: vip
+          Chance: 60
+          Item:
+            ID: IRON_SWORD
+            DisplayName: '&7&l[&aVIP&7&l]'
+        VIPPLUS:
+          Group: vipplus
+          Chance: 15
+          Item:
+            ID: GOLDEN_SWORD
+            DisplayName: '&7&l[&bVIP&6+&7&l]'
+        Deluxe:
+          Group: deluxe
+          Chance: 3
+          Item:
+            ID: DIAMOND_SWORD
+            DisplayName: '&7&l[&5Deluxe&7&l]'
+        Legend:
+          Group: legend
+          Chance: 2
+          Item:
+            ID: NETHERITE_SWORD
+            DisplayName: '&7&l[&dLegend&7&l]'
+
+  # --------------------------------------------------------------------------------------
+  # Settings of database.
+  # --------------------------------------------------------------------------------------
+  dataSource:
+    enable: false
+    url: "jdbc:mariadb://localhost:3306/tws_ds_core"
+    driver: "org.mariadb.jdbc.Driver"
+    port: 3306
+    user: "root"
+    password: "root"
+
+    # --------------------------------------------------------------------------------------
+    # Pool settings...
+    # --------------------------------------------------------------------------------------
+    use_ssl: true
+    maxPoolSize: 10
+    maxLifetime: 1800 # 30 minutes
+    connectionTimeout: 5000 # 5 second
+    intervalReload: 60 # in seconds

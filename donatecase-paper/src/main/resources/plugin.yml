@@ -1,0 +1,10 @@
+name: ${name}
+version: ${version}
+author: ${author}
+contributor: ${contributor}
+main: ${group}.dc.DonateCasePaperBase
+api-version: 1.20
+commands:
+  donatcase:
+    usage: /donatcase
+    aliases: [dc]
